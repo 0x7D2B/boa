@@ -289,6 +289,12 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
     Let,
 
+    /// The `loop` keyword.
+    ///
+    /// (fork)
+    ///
+    Loop,
+
     /// The `new` keyword.
     ///
     /// More information:
@@ -487,6 +493,7 @@ impl Keyword {
             Self::InstanceOf => "instanceof",
             Self::Import => "import",
             Self::Let => "let",
+            Self::Loop => "loop",
             Self::New => "new",
             Self::Of => "of",
             Self::Return => "return",
@@ -560,6 +567,7 @@ impl FromStr for Keyword {
             "instanceof" => Ok(Self::InstanceOf),
             "import" => Ok(Self::Import),
             "let" => Ok(Self::Let),
+            "loop" => Ok(Self::Loop),
             "new" => Ok(Self::New),
             "of" => Ok(Self::Of),
             "return" => Ok(Self::Return),

@@ -28,7 +28,7 @@ use self::{
     declaration::Declaration,
     expression::ExpressionStatement,
     if_stm::IfStatement,
-    iteration::{DoWhileStatement, ForStatement, WhileStatement},
+    iteration::{DoWhileStatement, ForStatement, WhileStatement, LoopStatement},
     return_stm::ReturnStatement,
     switch::SwitchStatement,
     throw::ThrowStatement,
@@ -126,6 +126,11 @@ where
             }
             TokenKind::Keyword(Keyword::While) => {
                 WhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor)
+                    .map(Node::from)
+            }
+            TokenKind::Keyword(Keyword::Loop) => {
+                LoopStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
                     .map(Node::from)
             }

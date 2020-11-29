@@ -1,0 +1,60 @@
+use crate::{
+    syntax::{
+        ast::{node::Loop, Keyword},
+        parser::{
+            statement::Statement, AllowAwait, AllowReturn, AllowYield,
+            Cursor, ParseError, TokenParser,
+        },
+    },
+    BoaProfiler,
+};
+
+use std::io::Read;
+
+/// Loop statement parsing
+///
+/// (fork)
+///
+#[derive(Debug, Clone, Copy)]
+pub(in crate::syntax::parser::statement) struct LoopStatement {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+    allow_return: AllowReturn,
+}
+
+impl LoopStatement {
+    /// Creates a new `LoopStatement` parser.
+    pub(in crate::syntax::parser::statement) fn new<Y, A, R>(
+        allow_yield: Y,
+        allow_await: A,
+        allow_return: R,
+    ) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+        R: Into<AllowReturn>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+            allow_return: allow_return.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for LoopStatement
+where
+    R: Read,
+{
+    type Output = Loop;
+
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("LoopStatement", "Parsing");
+        cursor.expect(Keyword::Loop, "loop statement")?;
+
+        let body =
+            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+
+        Ok(Loop::new(body))
+    }
+}
