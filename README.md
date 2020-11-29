@@ -1,3 +1,14 @@
+Experimental fork of both Boa and JavaScript. A lot of changes are making the language a but more Rust-esque, but I'll do more than that.
+
+Changes so far:
+
+* `for`, `if`, and `while` don't require parentheses
+* `for x in y` works like `for (const x of y)` and is the only for loop available
+* `fn` instead of `function`
+* `loop` statement - basically `while true`
+* `==` and `!=` are always strict and replace `===` and `!==`
+* `print` function
+
 # Boa
 
 <p align="center">
