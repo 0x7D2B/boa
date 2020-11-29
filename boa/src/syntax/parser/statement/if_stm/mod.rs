@@ -6,7 +6,7 @@ use super::Statement;
 use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{node::If, Keyword, Node, Punctuator},
+        ast::{node::If, Keyword, Node},
         parser::{
             expression::Expression, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
             TokenParser,
@@ -59,11 +59,11 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("IfStatement", "Parsing");
         cursor.expect(Keyword::If, "if statement")?;
-        cursor.expect(Punctuator::OpenParen, "if statement")?;
+        // cursor.expect(Punctuator::OpenParen, "if statement")?;
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "if statement")?;
+        // cursor.expect(Punctuator::CloseParen, "if statement")?;
 
         let then_stm =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
