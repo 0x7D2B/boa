@@ -373,9 +373,7 @@ expression!(
     RelationalExpression,
     [
         Punctuator::Eq,
-        Punctuator::NotEq,
-        Punctuator::StrictEq,
-        Punctuator::StrictNotEq
+        Punctuator::NotEq
     ],
     [allow_in, allow_yield, allow_await],
     None::<InputElement>

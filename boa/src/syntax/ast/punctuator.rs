@@ -117,10 +117,6 @@ pub enum Punctuator {
     Semicolon,
     /// `...`
     Spread,
-    /// `===`
-    StrictEq,
-    /// `!==`
-    StrictNotEq,
     /// `-`
     Sub,
     /// `>>>`
@@ -159,8 +155,6 @@ impl Punctuator {
             Self::BoolOr => Some(BinOp::Log(LogOp::Or)),
             Self::Eq => Some(BinOp::Comp(CompOp::Equal)),
             Self::NotEq => Some(BinOp::Comp(CompOp::NotEqual)),
-            Self::StrictEq => Some(BinOp::Comp(CompOp::StrictEqual)),
-            Self::StrictNotEq => Some(BinOp::Comp(CompOp::StrictNotEqual)),
             Self::LessThan => Some(BinOp::Comp(CompOp::LessThan)),
             Self::GreaterThan => Some(BinOp::Comp(CompOp::GreaterThan)),
             Self::GreaterThanOrEq => Some(BinOp::Comp(CompOp::GreaterThanOrEqual)),
@@ -235,8 +229,6 @@ impl Display for Punctuator {
                 Self::RightSh => ">>",
                 Self::Semicolon => ";",
                 Self::Spread => "...",
-                Self::StrictEq => "===",
-                Self::StrictNotEq => "!==",
                 Self::Sub => "-",
                 Self::URightSh => ">>>",
                 Self::Xor => "^",

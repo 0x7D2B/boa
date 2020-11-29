@@ -129,11 +129,9 @@ impl<R> Tokenizer<R> for Operator {
                 Ok(Punctuator::AssignXor),
                 Ok(Punctuator::Xor)
             ),
-            '=' => op!(cursor, start_pos, if cursor.next_is('=')? {
-                Ok(Punctuator::StrictEq)
-            } else {
-                Ok(Punctuator::Eq)
-            }, Ok(Punctuator::Assign), {
+            '=' => op!(cursor, start_pos,
+            Ok(Punctuator::Eq),
+            Ok(Punctuator::Assign), {
                 Some('>') => {
                     Ok(Punctuator::Arrow)
                 }
@@ -151,7 +149,7 @@ impl<R> Tokenizer<R> for Operator {
             '!' => op!(
                 cursor,
                 start_pos,
-                vop!(cursor, Ok(Punctuator::StrictNotEq), Ok(Punctuator::NotEq)),
+                Ok(Punctuator::NotEq),
                 Ok(Punctuator::Not)
             ),
             '~' => Ok(Token::new(

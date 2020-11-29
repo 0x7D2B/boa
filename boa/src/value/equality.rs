@@ -1,12 +1,13 @@
 use super::*;
-use crate::{builtins::Number, Context};
+use crate::builtins::Number;
 
 impl Value {
-    /// Strict equality comparison.
+    /// Strict equality comparison. Always.
     ///
-    /// This method is executed when doing strict equality comparisons with the `===` operator.
+    /// (fork)
+    ///
     /// For more information, check <https://tc39.es/ecma262/#sec-strict-equality-comparison>.
-    pub fn strict_equals(&self, other: &Self) -> bool {
+    pub fn equals(&self, other: &Self) -> bool {
         // 1. If Type(x) is different from Type(y), return false.
         if self.get_type() != other.get_type() {
             return false;
@@ -30,86 +31,6 @@ impl Value {
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => same_value_non_numeric(self, other),
         }
-    }
-
-    /// Abstract equality comparison.
-    ///
-    /// This method is executed when doing abstract equality comparisons with the `==` operator.
-    ///  For more information, check <https://tc39.es/ecma262/#sec-abstract-equality-comparison>
-    #[allow(clippy::float_cmp)]
-    pub fn equals(&self, other: &Self, context: &mut Context) -> Result<bool> {
-        // 1. If Type(x) is the same as Type(y), then
-        //     a. Return the result of performing Strict Equality Comparison x === y.
-        if self.get_type() == other.get_type() {
-            return Ok(self.strict_equals(other));
-        }
-
-        Ok(match (self, other) {
-            // 2. If x is null and y is undefined, return true.
-            // 3. If x is undefined and y is null, return true.
-            (Self::Null, Self::Undefined) | (Self::Undefined, Self::Null) => true,
-
-            // 3. If Type(x) is Number and Type(y) is String, return the result of the comparison x == ! ToNumber(y).
-            // 4. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
-            //
-            // https://github.com/rust-lang/rust/issues/54883
-            (Self::Integer(_), Self::String(_))
-            | (Self::Rational(_), Self::String(_))
-            | (Self::String(_), Self::Integer(_))
-            | (Self::String(_), Self::Rational(_))
-            | (Self::Rational(_), Self::Boolean(_))
-            | (Self::Integer(_), Self::Boolean(_)) => {
-                let x = self.to_number(context)?;
-                let y = other.to_number(context)?;
-                Number::equal(x, y)
-            }
-
-            // 6. If Type(x) is BigInt and Type(y) is String, then
-            //    a. Let n be ! StringToBigInt(y).
-            //    b. If n is NaN, return false.
-            //    c. Return the result of the comparison x == n.
-            (Self::BigInt(ref a), Self::String(ref b)) => match string_to_bigint(b) {
-                Some(ref b) => a.as_inner() == b,
-                None => false,
-            },
-
-            // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            (Self::String(ref a), Self::BigInt(ref b)) => match string_to_bigint(a) {
-                Some(ref a) => a == b.as_inner(),
-                None => false,
-            },
-
-            // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(x), _) => return other.equals(&Value::from(*x as i32), context),
-
-            // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(y)) => return self.equals(&Value::from(*y as i32), context),
-
-            // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
-            // of the comparison x == ? ToPrimitive(y).
-            (Self::Object(_), _) => {
-                let primitive = self.to_primitive(context, PreferredType::Default)?;
-                return primitive.equals(other, context);
-            }
-
-            // 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result
-            // of the comparison ? ToPrimitive(x) == y.
-            (_, Self::Object(_)) => {
-                let primitive = other.to_primitive(context, PreferredType::Default)?;
-                return primitive.equals(self, context);
-            }
-
-            // 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then
-            //    a. If x or y are any of NaN, +∞, or -∞, return false.
-            //    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.
-            (Self::BigInt(ref a), Self::Rational(ref b)) => a.as_inner() == b,
-            (Self::Rational(ref a), Self::BigInt(ref b)) => a == b.as_inner(),
-            (Self::BigInt(ref a), Self::Integer(ref b)) => a.as_inner() == b,
-            (Self::Integer(ref a), Self::BigInt(ref b)) => a == b.as_inner(),
-
-            // 13. Return false.
-            _ => false,
-        })
     }
 }
 

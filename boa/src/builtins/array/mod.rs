@@ -716,7 +716,7 @@ impl Array {
         while idx < len {
             let check_element = this.get_field(idx).clone();
 
-            if check_element.strict_equals(&search_element) {
+            if check_element.equals(&search_element) {
                 return Ok(Value::from(idx));
             }
 
@@ -772,7 +772,7 @@ impl Array {
         while idx >= 0 {
             let check_element = this.get_field(idx).clone();
 
-            if check_element.strict_equals(&search_element) {
+            if check_element.equals(&search_element) {
                 return Ok(Value::from(idx));
             }
 

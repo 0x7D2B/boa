@@ -137,7 +137,7 @@ impl Executable for Switch {
         for case in self.cases().iter() {
             let cond = case.condition();
             let block = case.body();
-            if fall_through || val.strict_equals(&cond.run(context)?) {
+            if fall_through || val.equals(&cond.run(context)?) {
                 matched = true;
                 let result = block.run(context)?;
                 match context.executor().get_current_state() {

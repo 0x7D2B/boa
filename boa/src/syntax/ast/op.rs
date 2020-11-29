@@ -465,43 +465,12 @@ unsafe impl Trace for BitOp {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, Finalize, PartialEq)]
 pub enum CompOp {
-    /// The equality operator converts the operands if they are not of the same type, then applies
-    /// strict comparison.
-    ///
-    /// Syntax: `y == y`
-    ///
-    /// If both operands are objects, then JavaScript compares internal references which are equal
-    /// when operands refer to the same object in memory.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-abstract-equality-comparison
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Equality
-    Equal,
-
-    /// The inequality operator returns `true` if the operands are not equal.
-    ///
-    /// Syntax: `x != y`
-    ///
-    /// If the two operands are not of the same type, JavaScript attempts to convert the operands
-    /// to an appropriate type for the comparison. If both operands are objects, then JavaScript
-    /// compares internal references which are not equal when operands refer to different objects
-    /// in memory.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-EqualityExpression
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Inequality
-    NotEqual,
-
     /// The identity operator returns `true` if the operands are strictly equal **with no type
     /// conversion**.
     ///
-    /// Syntax: `x === y`
+    /// (fork)
+    ///
+    /// Syntax: `x == y`
     ///
     /// Returns `true` if the operands are equal and of the same type.
     ///
@@ -511,12 +480,14 @@ pub enum CompOp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-strict-equality-comparison
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Identity
-    StrictEqual,
+    Equal,
 
     /// The non-identity operator returns `true` if the operands **are not equal and/or not of the
     /// same type**.
     ///
-    /// Syntax: `x !== y`
+    /// (fork)
+    ///
+    /// Syntax: `x != y`
     ///
     /// Returns `true` if the operands are of the same type but not equal, or are of different type.
     ///
@@ -526,7 +497,7 @@ pub enum CompOp {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-EqualityExpression
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comparison_Operators#Nonidentity>
-    StrictNotEqual,
+    NotEqual,
 
     /// The greater than operator returns `true` if the left operand is greater than the right
     /// operand.
@@ -627,8 +598,6 @@ impl Display for CompOp {
             match *self {
                 Self::Equal => "==",
                 Self::NotEqual => "!=",
-                Self::StrictEqual => "===",
-                Self::StrictNotEqual => "!==",
                 Self::GreaterThan => ">",
                 Self::GreaterThanOrEqual => ">=",
                 Self::LessThan => "<",

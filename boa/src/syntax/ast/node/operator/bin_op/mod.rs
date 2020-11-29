@@ -106,10 +106,8 @@ impl Executable for BinOp {
                 let x = self.lhs().run(context)?;
                 let y = self.rhs().run(context)?;
                 Ok(Value::from(match op {
-                    CompOp::Equal => x.equals(&y, context)?,
-                    CompOp::NotEqual => !x.equals(&y, context)?,
-                    CompOp::StrictEqual => x.strict_equals(&y),
-                    CompOp::StrictNotEqual => !x.strict_equals(&y),
+                    CompOp::Equal => x.equals(&y),
+                    CompOp::NotEqual => !x.equals(&y),
                     CompOp::GreaterThan => x.gt(&y, context)?,
                     CompOp::GreaterThanOrEqual => x.ge(&y, context)?,
                     CompOp::LessThan => x.lt(&y, context)?,
