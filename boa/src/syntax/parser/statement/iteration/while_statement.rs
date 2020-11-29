@@ -1,6 +1,6 @@
 use crate::{
     syntax::{
-        ast::{node::WhileLoop, Keyword, Punctuator},
+        ast::{node::WhileLoop, Keyword},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
             Cursor, ParseError, TokenParser,
@@ -56,11 +56,11 @@ where
         let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
         cursor.expect(Keyword::While, "while statement")?;
 
-        cursor.expect(Punctuator::OpenParen, "while statement")?;
+        // cursor.expect(Punctuator::OpenParen, "while statement")?;
 
         let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseParen, "while statement")?;
+        // cursor.expect(Punctuator::CloseParen, "while statement")?;
 
         let body =
             Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
