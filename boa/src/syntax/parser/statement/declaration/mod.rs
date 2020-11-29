@@ -52,6 +52,36 @@ impl Declaration {
     }
 }
 
+pub(in crate::syntax::parser::statement) trait TokenParserForConst<R>:
+    Sized
+where
+    R: Read,
+{
+    /// Output type for the parser.
+    type Output; // = Node; waiting for https://github.com/rust-lang/rust/issues/29661
+
+    /// Parses the token stream using the current parser.
+    ///
+    /// This method needs to be provided by the implementor type.
+    fn parse_const(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
+}
+
+impl<R> TokenParserForConst<R> for Declaration
+where
+    R: Read,
+{
+    type Output = Node;
+    fn parse_const(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        return LexicalDeclaration::new(
+            true,
+            self.allow_yield,
+            self.allow_await,
+            self.const_init_required,
+        )
+        .parse_const(cursor);
+    }
+}
+
 impl<R> TokenParser<R> for Declaration
 where
     R: Read,

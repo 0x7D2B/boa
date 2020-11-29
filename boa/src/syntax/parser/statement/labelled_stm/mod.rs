@@ -59,8 +59,9 @@ where
     }
 }
 
+#[allow(unused_variables)]
 fn set_label_for_node(stmt: &mut Node, name: Box<str>) {
-    if let Node::ForLoop(ref mut for_loop) = stmt {
-        for_loop.set_label(name)
-    }
+    // if let Node::ForLoop(ref mut for_loop) = stmt {
+    //     for_loop.set_label(name)
+    // }
 }

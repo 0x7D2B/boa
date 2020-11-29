@@ -17,7 +17,7 @@ use crate::{
         parser::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
-            statement::BindingIdentifier,
+            statement::{declaration::TokenParserForConst, BindingIdentifier},
             AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
         },
     },
@@ -59,6 +59,25 @@ impl LexicalDeclaration {
             allow_await: allow_await.into(),
             const_init_required,
         }
+    }
+}
+
+impl<R> TokenParserForConst<R> for LexicalDeclaration
+where
+    R: Read,
+{
+    type Output = Node;
+
+    fn parse_const(self, cursor: &mut Cursor<R>) -> ParseResult {
+        let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
+        return BindingList::new(
+            self.allow_in,
+            self.allow_yield,
+            self.allow_await,
+            true,
+            self.const_init_required,
+        )
+        .parse(cursor);
     }
 }
 
