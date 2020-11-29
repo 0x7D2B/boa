@@ -18,6 +18,7 @@ pub mod nan;
 pub mod number;
 pub mod object;
 pub mod regexp;
+pub mod std;
 pub mod string;
 pub mod symbol;
 pub mod undefined;
@@ -39,6 +40,7 @@ pub(crate) use self::{
     number::Number,
     object::Object as BuiltInObjectObject,
     regexp::RegExp,
+    std::Std,
     string::String,
     symbol::Symbol,
     undefined::Undefined,
@@ -75,6 +77,7 @@ pub fn init(context: &mut Context) {
         Date::init,
         Map::init,
         Number::init,
+        Std::init,
         String::init,
         RegExp::init,
         Symbol::init,
