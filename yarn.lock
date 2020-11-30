@@ -3000,10 +3000,10 @@ postcss@^8.1.4:
     nanoid "^3.1.15"
     source-map "^0.6.1"
 
-prettier@2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.2.0.tgz#8a03c7777883b29b37fb2c4348c66a78e980418b"
-  integrity sha512-yYerpkvseM4iKD/BXLYUkQV5aKt4tQPqaGW6EsZjzyu0r7sVZZNPJW4Y8MyKmicp6t42XUPcBVA+H6sB3gqndw==
+prettier@2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.2.1.tgz#795a1a78dd52f073da0cd42b21f9c91381923ff5"
+  integrity sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==
 
 pretty-error@^2.1.1:
   version "2.1.1"
@@ -4063,10 +4063,10 @@ webpack-sources@^2.1.1:
     source-list-map "^2.0.1"
     source-map "^0.6.1"
 
-webpack@^5.8.0:
-  version "5.8.0"
-  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.8.0.tgz#65f00a181708279ff982c2d7338e1dd5505364c4"
-  integrity sha512-X2yosPiHip3L0TE+ylruzrOqSgEgsdGyBOGFWKYChcwlKChaw9VodZIUovG1oo7s0ss6e3ZxBMn9tXR+nkPThA==
+webpack@^5.9.0:
+  version "5.9.0"
+  resolved "https://registry.yarnpkg.com/webpack/-/webpack-5.9.0.tgz#af2e9cf9d6c7867cdcf214ea3bb5eb77aece6895"
+  integrity sha512-YnnqIV/uAS5ZrNpctSv378qV7HmbJ74DL+XfvMxzbX1bV9e7eeT6eEWU4wuUw33CNr/HspBh7R/xQlVjTEyAeA==
   dependencies:
     "@types/eslint-scope" "^3.7.0"
     "@types/estree" "^0.0.45"
