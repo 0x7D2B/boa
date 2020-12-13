@@ -154,7 +154,14 @@ impl GcObject {
                                 break;
                             }
 
-                            let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
+                            let value = if let Some(value) = args.get(i).cloned() {
+                                value
+                            } else if let Some(init) = param.init() {
+                                init.run(context).unwrap_or_else(|_| Value::undefined())
+                            } else {
+                                Value::undefined()
+                            };
+
                             function.add_arguments_to_environment(param, value, &local_env);
                         }
 
@@ -235,7 +242,14 @@ impl GcObject {
                                 break;
                             }
 
-                            let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
+                            let value = if let Some(value) = args.get(i).cloned() {
+                                value
+                            } else if let Some(init) = param.init() {
+                                init.run(context).unwrap_or_else(|_| Value::undefined())
+                            } else {
+                                Value::undefined()
+                            };
+
                             function.add_arguments_to_environment(param, value, &local_env);
                         }
 
