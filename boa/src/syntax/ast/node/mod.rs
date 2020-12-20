@@ -33,7 +33,7 @@ pub use self::{
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::{Continue, DoWhileLoop, ForLoop, WhileLoop, Loop},
+    iteration::{Continue, ForLoop, WhileLoop, Loop},
     new::New,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
@@ -111,9 +111,6 @@ pub enum Node {
 
     /// A continue statement. [More information](./iteration/struct.Continue.html).
     Continue(Continue),
-
-    /// A do ... while statement. [More information](./iteration/struct.DoWhileLoop.html).
-    DoWhileLoop(DoWhileLoop),
 
     /// A function declaration node. [More information](./declaration/struct.FunctionDecl.html).
     FunctionDecl(FunctionDecl),
@@ -241,7 +238,6 @@ impl Node {
             Self::GetField(ref get_field) => Display::fmt(get_field, f),
             Self::WhileLoop(ref while_loop) => while_loop.display(f, indentation),
             Self::Loop(ref r#loop) => r#loop.display(f, indentation),
-            Self::DoWhileLoop(ref do_while) => do_while.display(f, indentation),
             Self::If(ref if_smt) => if_smt.display(f, indentation),
             Self::Switch(ref switch) => switch.display(f, indentation),
             Self::Object(ref obj) => obj.display(f, indentation),
@@ -288,7 +284,6 @@ impl Executable for Node {
             Node::GetField(ref get_field) => get_field.run(context),
             Node::WhileLoop(ref while_loop) => while_loop.run(context),
             Node::Loop(ref r#loop) => r#loop.run(context),
-            Node::DoWhileLoop(ref do_while) => do_while.run(context),
             Node::ForLoop(ref for_loop) => for_loop.run(context),
             Node::If(ref if_smt) => if_smt.run(context),
             Node::ConditionalOp(ref op) => op.run(context),
