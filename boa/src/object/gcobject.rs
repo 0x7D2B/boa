@@ -145,6 +145,7 @@ impl GcObject {
                                 BindingStatus::Uninitialized
                             },
                         );
+                        context.realm_mut().environment.push(local_env.clone());
 
                         // Add argument bindings to the function environment
                         for (i, param) in params.iter().enumerate() {
@@ -173,8 +174,6 @@ impl GcObject {
                         local_env
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
-
-                        context.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -233,6 +232,7 @@ impl GcObject {
                                 BindingStatus::Uninitialized
                             },
                         );
+                        context.realm_mut().environment.push(local_env.clone());
 
                         // Add argument bindings to the function environment
                         for (i, param) in params.iter().enumerate() {
@@ -261,8 +261,6 @@ impl GcObject {
                         local_env
                             .borrow_mut()
                             .initialize_binding("arguments", arguments_obj);
-
-                        context.realm_mut().environment.push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
