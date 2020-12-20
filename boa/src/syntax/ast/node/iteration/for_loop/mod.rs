@@ -8,10 +8,10 @@ use crate::{
 };
 use std::fmt;
 
-#[cfg(feature = "serde")]
+#[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ForLoop {
     variable: Box<Node>,
@@ -46,7 +46,7 @@ impl ForLoop {
     }
 
     pub fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        write!(f, "for ({} of {}) {{", self.variable, self.iterable)?;
+        write!(f, "for {} in {} {{", self.variable, self.iterable)?;
         self.body().display(f, indentation + 1)?;
         f.write_str("}")
     }
@@ -59,14 +59,14 @@ impl fmt::Display for ForLoop {
 }
 
 impl From<ForLoop> for Node {
-    fn from(for_of: ForLoop) -> Node {
-        Self::ForLoop(for_of)
+    fn from(r#for: ForLoop) -> Node {
+        Self::ForLoop(r#for)
     }
 }
 
 impl Executable for ForLoop {
     fn run(&self, context: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("ForOf", "exec");
+        let _timer = BoaProfiler::global().start_event("For", "exec");
         let iterable = self.iterable().run(context)?;
         let iterator = get_iterator(context, iterable)?;
         let mut result = Value::undefined();
@@ -105,7 +105,7 @@ impl Executable for ForLoop {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for loop can't have an initializer");
                         }
 
                         if environment.has_binding(var.name()) {
@@ -121,7 +121,7 @@ impl Executable for ForLoop {
                     }
                     _ => {
                         return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for-of loop",
+                            "only one variable can be declared in the head of a for loop",
                         )
                     }
                 },
@@ -130,7 +130,7 @@ impl Executable for ForLoop {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for loop can't have an initializer");
                         }
 
                         environment.create_mutable_binding(
@@ -142,7 +142,7 @@ impl Executable for ForLoop {
                     }
                     _ => {
                         return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for-of loop",
+                            "only one variable can be declared in the head of a for loop",
                         )
                     }
                 },
@@ -151,7 +151,7 @@ impl Executable for ForLoop {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for loop can't have an initializer");
                         }
 
                         environment.create_immutable_binding(
@@ -163,18 +163,18 @@ impl Executable for ForLoop {
                     }
                     _ => {
                         return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for-of loop",
+                            "only one variable can be declared in the head of a for loop",
                         )
                     }
                 },
                 Node::Assign(_) => {
                     return context.throw_syntax_error(
-                        "a declaration in the head of a for-of loop can't have an initializer",
+                        "a declaration in the head of a for loop can't have an initializer",
                     );
                 }
                 _ => {
                     return context
-                        .throw_syntax_error("unknown left hand side in head of for-of loop")
+                        .throw_syntax_error("unknown left hand side in head of for loop")
                 }
             }
 

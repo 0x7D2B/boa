@@ -42,6 +42,21 @@ fn check_single_line_comment() {
 }
 
 #[test]
+fn check_single_line_comment_with_crlf_ending() {
+    let s1 = "var \r\n//This is a comment\r\ntrue";
+    let mut lexer = Lexer::new(s1.as_bytes());
+
+    let expected = [
+        TokenKind::Keyword(Keyword::Var),
+        TokenKind::LineTerminator,
+        TokenKind::LineTerminator,
+        TokenKind::BooleanLiteral(true),
+    ];
+
+    expect_tokens(&mut lexer, &expected);
+}
+
+#[test]
 fn check_multi_line_comment() {
     let s = "var /* await \n break \n*/ x";
     let mut lexer = Lexer::new(s.as_bytes());
@@ -705,7 +720,7 @@ fn illegal_code_point_following_numeric_literal() {
     let mut lexer = Lexer::new(&br#"17.4\u{2764}"#[..]);
     assert!(
         lexer.next().is_err(),
-        "IdentifierStart \\u{2764} following NumericLiteral not rejected as expected"
+        r#"IdentifierStart \u{2764} following NumericLiteral not rejected as expected"#
     );
 }
 
