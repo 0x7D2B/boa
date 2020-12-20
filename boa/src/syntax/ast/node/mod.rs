@@ -179,7 +179,7 @@ pub enum Node {
 
     /// A 'while {...}' node. [More information](./iteration/struct.WhileLoop.html).
     WhileLoop(WhileLoop),
-    ///
+
     /// A 'loop {...}' node. [More information](./iteration/struct.Loop.html).
     Loop(Loop),
 }
