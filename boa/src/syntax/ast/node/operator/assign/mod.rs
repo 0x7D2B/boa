@@ -62,25 +62,32 @@ impl Executable for Assign {
 
                 if environment.has_binding(name.as_ref()) {
                     // Binding already exists
-                    environment.set_mutable_binding(name.as_ref(), val.clone(), true);
+                    environment
+                        .set_mutable_binding(name.as_ref(), val.clone(), true)
+                        .map_err(|e| e.to_error(context))?;
                 } else {
-                    environment.create_mutable_binding(
-                        name.as_ref().to_owned(),
-                        true,
-                        VariableScope::Function,
-                    );
-                    environment.initialize_binding(name.as_ref(), val.clone());
+                    environment
+                        .create_mutable_binding(
+                            name.as_ref().to_owned(),
+                            true,
+                            VariableScope::Function,
+                        )
+                        .map_err(|e| e.to_error(context))?;
+                    let environment = &mut context.realm_mut().environment;
+                    environment
+                        .initialize_binding(name.as_ref(), val.clone())
+                        .map_err(|e| e.to_error(context))?;
                 }
             }
             Node::GetConstField(ref get_const_field) => {
                 let val_obj = get_const_field.obj().run(context)?;
-                val_obj.set_field(get_const_field.field(), val.clone());
+                val_obj.set_field(get_const_field.field(), val.clone(), context)?;
             }
             Node::GetField(ref get_field) => {
                 let object = get_field.obj().run(context)?;
                 let field = get_field.field().run(context)?;
                 let key = field.to_property_key(context)?;
-                object.set_field(key, val.clone());
+                object.set_field(key, val.clone(), context)?;
             }
             _ => (),
         }

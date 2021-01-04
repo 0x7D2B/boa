@@ -92,7 +92,6 @@ fn object_is() {
     assert_eq!(forward(&mut context, "Object.is()"), "true");
     assert_eq!(forward(&mut context, "Object.is(undefined)"), "true");
     assert!(context.global_object().is_global());
-    assert!(!context.global_object().get_field("Object").is_global());
 }
 #[test]
 fn object_has_own_property() {
@@ -278,4 +277,15 @@ fn object_define_properties() {
     eprintln!("{}", forward(&mut context, init));
 
     assert_eq!(forward(&mut context, "obj.p"), "42");
+}
+
+#[test]
+fn object_is_prototype_of() {
+    let mut context = Context::new();
+
+    let init = r#"
+        Object.prototype.isPrototypeOf(String.prototype)
+    "#;
+
+    assert_eq!(context.eval(init).unwrap(), Value::boolean(true));
 }

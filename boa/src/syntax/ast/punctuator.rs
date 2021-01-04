@@ -35,6 +35,12 @@ pub enum Punctuator {
     AssignAdd,
     /// `&=`
     AssignAnd,
+    /// `&&=`
+    AssignBoolAnd,
+    /// `||=`
+    AssignBoolOr,
+    /// `??=`,
+    AssignCoalesce,
     /// `/=`
     AssignDiv,
     /// `<<=`
@@ -65,6 +71,8 @@ pub enum Punctuator {
     CloseBracket,
     /// `)`
     CloseParen,
+    /// `??`
+    Coalesce,
     /// `:`
     Colon,
     /// `,`
@@ -133,6 +141,9 @@ impl Punctuator {
         match self {
             Self::AssignAdd => Some(BinOp::Assign(AssignOp::Add)),
             Self::AssignAnd => Some(BinOp::Assign(AssignOp::And)),
+            Self::AssignBoolAnd => Some(BinOp::Assign(AssignOp::BoolAnd)),
+            Self::AssignBoolOr => Some(BinOp::Assign(AssignOp::BoolOr)),
+            Self::AssignCoalesce => Some(BinOp::Assign(AssignOp::Coalesce)),
             Self::AssignDiv => Some(BinOp::Assign(AssignOp::Div)),
             Self::AssignLeftSh => Some(BinOp::Assign(AssignOp::Shl)),
             Self::AssignMod => Some(BinOp::Assign(AssignOp::Mod)),
@@ -153,6 +164,7 @@ impl Punctuator {
             Self::Xor => Some(BinOp::Bit(BitOp::Xor)),
             Self::BoolAnd => Some(BinOp::Log(LogOp::And)),
             Self::BoolOr => Some(BinOp::Log(LogOp::Or)),
+            Self::Coalesce => Some(BinOp::Log(LogOp::Coalesce)),
             Self::Eq => Some(BinOp::Comp(CompOp::Equal)),
             Self::NotEq => Some(BinOp::Comp(CompOp::NotEqual)),
             Self::LessThan => Some(BinOp::Comp(CompOp::LessThan)),
@@ -188,6 +200,9 @@ impl Display for Punctuator {
                 Self::Assign => "=",
                 Self::AssignAdd => "+=",
                 Self::AssignAnd => "&=",
+                Self::AssignBoolAnd => "&&=",
+                Self::AssignBoolOr => "||=",
+                Self::AssignCoalesce => "??=",
                 Self::AssignDiv => "/=",
                 Self::AssignLeftSh => "<<=",
                 Self::AssignMod => "%=",
@@ -200,6 +215,7 @@ impl Display for Punctuator {
                 Self::AssignXor => "^=",
                 Self::BoolAnd => "&&",
                 Self::BoolOr => "||",
+                Self::Coalesce => "??",
                 Self::CloseBlock => "}",
                 Self::CloseBracket => "]",
                 Self::CloseParen => ")",

@@ -128,7 +128,7 @@ impl GcObject {
                         environment,
                         flags,
                     } => {
-                        // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
+                        // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = new_function_environment(
                             this_function_object,
@@ -170,10 +170,12 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false);
+                            .create_mutable_binding("arguments".to_string(), false, false)
+                            .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj);
+                            .initialize_binding("arguments", arguments_obj)
+                            .map_err(|e| e.to_error(context))?;
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -204,7 +206,21 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
     pub fn construct(&self, args: &[Value], context: &mut Context) -> Result<Value> {
-        let this: Value = Object::create(self.get(&PROTOTYPE.into())).into();
+        // If the prototype of the constructor is not an object, then use the default object
+        // prototype as prototype for the new object
+        // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
+        // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
+        let proto = self.get(&PROTOTYPE.into(), context)?;
+        let proto = if proto.is_object() {
+            proto
+        } else {
+            context
+                .standard_objects()
+                .object_object()
+                .prototype()
+                .into()
+        };
+        let this: Value = Object::create(proto).into();
 
         let this_function_object = self.clone();
         let body = if let Some(function) = self.borrow().as_function() {
@@ -257,16 +273,18 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false);
+                            .create_mutable_binding("arguments".to_string(), false, false)
+                            .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj);
+                            .initialize_binding("arguments", arguments_obj)
+                            .map_err(|e| e.to_error(context))?;
 
                         FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
-                let name = this.get_field("name").display().to_string();
+                let name = this.get_field("name", context)?.display().to_string();
                 return context.throw_type_error(format!("{} is not a constructor", name));
             }
         } else {
@@ -283,7 +301,7 @@ impl GcObject {
 
                 // local_env gets dropped here, its no longer needed
                 let binding = context.realm_mut().environment.get_this_binding();
-                Ok(binding)
+                binding.map_err(|e| e.to_error(context))
             }
         }
     }
@@ -344,7 +362,7 @@ impl GcObject {
         let this = Value::from(self.clone());
         for name in &method_names {
             // a. Let method be ? Get(O, name).
-            let method: Value = this.get_field(*name);
+            let method: Value = this.get_field(*name, context)?;
             // b. If IsCallable(method) is true, then
             if method.is_function() {
                 // i. Let result be ? Call(method, O).
@@ -371,7 +389,7 @@ impl GcObject {
             let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
             let this = Value::from(self.clone());
             for key in keys {
-                let value = this.get_field(key);
+                let value = this.get_field(key, context)?;
                 if value.is_undefined() || value.is_function() || value.is_symbol() {
                     arr.push(JSONValue::Null);
                 } else {
@@ -384,7 +402,7 @@ impl GcObject {
             let this = Value::from(self.clone());
             for k in self.borrow().keys() {
                 let key = k.clone();
-                let value = this.get_field(k.to_string());
+                let value = this.get_field(k.to_string(), context)?;
                 if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
                     new_obj.insert(key.to_string(), value.to_json(context)?);
                 }
@@ -402,26 +420,28 @@ impl GcObject {
         let mut attribute = Attribute::empty();
 
         let enumerable_key = PropertyKey::from("enumerable");
-        if self.has_property(&enumerable_key) && self.get(&enumerable_key).to_boolean() {
+        if self.has_property(&enumerable_key) && self.get(&enumerable_key, context)?.to_boolean() {
             attribute |= Attribute::ENUMERABLE;
         }
 
         let configurable_key = PropertyKey::from("configurable");
-        if self.has_property(&configurable_key) && self.get(&configurable_key).to_boolean() {
+        if self.has_property(&configurable_key)
+            && self.get(&configurable_key, context)?.to_boolean()
+        {
             attribute |= Attribute::CONFIGURABLE;
         }
 
         let mut value = None;
         let value_key = PropertyKey::from("value");
         if self.has_property(&value_key) {
-            value = Some(self.get(&value_key));
+            value = Some(self.get(&value_key, context)?);
         }
 
         let mut has_writable = false;
         let writable_key = PropertyKey::from("writable");
         if self.has_property(&writable_key) {
             has_writable = true;
-            if self.get(&writable_key).to_boolean() {
+            if self.get(&writable_key, context)?.to_boolean() {
                 attribute |= Attribute::WRITABLE;
             }
         }
@@ -429,7 +449,7 @@ impl GcObject {
         let mut get = None;
         let get_key = PropertyKey::from("get");
         if self.has_property(&get_key) {
-            let getter = self.get(&get_key);
+            let getter = self.get(&get_key, context)?;
             match getter {
                 Value::Object(ref object) if object.is_callable() => {
                     get = Some(object.clone());
@@ -445,7 +465,7 @@ impl GcObject {
         let mut set = None;
         let set_key = PropertyKey::from("set");
         if self.has_property(&set_key) {
-            let setter = self.get(&set_key);
+            let setter = self.get(&set_key, context)?;
             match setter {
                 Value::Object(ref object) if object.is_callable() => {
                     set = Some(object.clone());
@@ -542,7 +562,7 @@ impl GcObject {
     /// or if th prototype is not an object or undefined.
     #[inline]
     #[track_caller]
-    pub fn set_prototype_instance(&mut self, prototype: Value) {
+    pub fn set_prototype_instance(&mut self, prototype: Value) -> bool {
         self.borrow_mut().set_prototype_instance(prototype)
     }
 
@@ -701,7 +721,7 @@ impl GcObject {
         K: Into<PropertyKey>,
     {
         let key = key.into();
-        let value = self.get(&key);
+        let value = self.get(&key, context)?;
 
         if value.is_null_or_undefined() {
             return Ok(None);
@@ -721,7 +741,11 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
     #[inline]
-    pub fn ordinary_has_instance(&self, context: &mut Context, value: &Value) -> Result<bool> {
+    pub(crate) fn ordinary_has_instance(
+        &self,
+        context: &mut Context,
+        value: &Value,
+    ) -> Result<bool> {
         if !self.is_callable() {
             return Ok(false);
         }
@@ -731,7 +755,7 @@ impl GcObject {
         //           Return ? InstanceofOperator(O, BC).
 
         if let Some(object) = value.as_object() {
-            if let Some(prototype) = self.get(&"prototype".into()).as_object() {
+            if let Some(prototype) = self.get(&"prototype".into(), context)?.as_object() {
                 let mut object = object.get_prototype_of();
                 while let Some(object_prototype) = object.as_object() {
                     if GcObject::equals(&prototype, &object_prototype) {
@@ -747,6 +771,43 @@ impl GcObject {
             }
         } else {
             Ok(false)
+        }
+    }
+    #[inline]
+    #[track_caller]
+    pub fn has_own_property<K>(&self, key: K) -> bool
+    where
+        K: Into<PropertyKey>,
+    {
+        let key = key.into();
+        self.get_own_property(&key).is_some()
+    }
+
+    /// Defines the property or throws a `TypeError` if the operation fails.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
+    #[inline]
+    pub(crate) fn define_property_or_throw<K, P>(
+        &mut self,
+        key: K,
+        desc: P,
+        context: &mut Context,
+    ) -> Result<()>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        let key = key.into();
+        let desc = desc.into();
+
+        let success = self.define_own_property(key.clone(), desc);
+        if !success {
+            Err(context.construct_type_error(format!("Cannot redefine property: {}", key)))
+        } else {
+            Ok(())
         }
     }
 }

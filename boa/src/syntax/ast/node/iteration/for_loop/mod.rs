@@ -17,6 +17,7 @@ pub struct ForLoop {
     variable: Box<Node>,
     iterable: Box<Node>,
     body: Box<Node>,
+    label: Option<Box<str>>,
 }
 
 impl ForLoop {
@@ -30,6 +31,7 @@ impl ForLoop {
             variable: Box::new(variable.into()),
             iterable: Box::new(iterable.into()),
             body: Box::new(body.into()),
+            label: None,
         }
     }
 
@@ -43,6 +45,14 @@ impl ForLoop {
 
     pub fn body(&self) -> &Node {
         &self.body
+    }
+
+    pub fn label(&self) -> Option<&str> {
+        self.label.as_ref().map(Box::as_ref)
+    }
+
+    pub fn set_label(&mut self, label: Box<str>) {
+        self.label = Some(label);
     }
 
     pub fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
@@ -90,14 +100,21 @@ impl Executable for ForLoop {
 
                     if environment.has_binding(name.as_ref()) {
                         // Binding already exists
-                        environment.set_mutable_binding(name.as_ref(), next_result.clone(), true);
+                        environment
+                            .set_mutable_binding(name.as_ref(), next_result.clone(), true)
+                            .map_err(|e| e.to_error(context))?;
                     } else {
-                        environment.create_mutable_binding(
-                            name.as_ref().to_owned(),
-                            true,
-                            VariableScope::Function,
-                        );
-                        environment.initialize_binding(name.as_ref(), next_result.clone());
+                        environment
+                            .create_mutable_binding(
+                                name.as_ref().to_owned(),
+                                true,
+                                VariableScope::Function,
+                            )
+                            .map_err(|e| e.to_error(context))?;
+                        let environment = &mut context.realm_mut().environment;
+                        environment
+                            .initialize_binding(name.as_ref(), next_result.clone())
+                            .map_err(|e| e.to_error(context))?;
                     }
                 }
                 Node::VarDeclList(ref list) => match list.as_ref() {
@@ -105,23 +122,30 @@ impl Executable for ForLoop {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
                         if environment.has_binding(var.name()) {
-                            environment.set_mutable_binding(var.name(), next_result, true);
+                            environment
+                                .set_mutable_binding(var.name(), next_result, true)
+                                .map_err(|e| e.to_error(context))?;
                         } else {
-                            environment.create_mutable_binding(
-                                var.name().to_owned(),
-                                false,
-                                VariableScope::Function,
-                            );
-                            environment.initialize_binding(var.name(), next_result);
+                            environment
+                                .create_mutable_binding(
+                                    var.name().to_owned(),
+                                    false,
+                                    VariableScope::Function,
+                                )
+                                .map_err(|e| e.to_error(context))?;
+                            let environment = &mut context.realm_mut().environment;
+                            environment
+                                .initialize_binding(var.name(), next_result)
+                                .map_err(|e| e.to_error(context))?;
                         }
                     }
                     _ => {
                         return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for loop",
+                            "only one variable can be declared in the head of a for-in loop",
                         )
                     }
                 },
@@ -130,19 +154,25 @@ impl Executable for ForLoop {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
-                        environment.create_mutable_binding(
-                            var.name().to_owned(),
-                            false,
-                            VariableScope::Block,
-                        );
-                        environment.initialize_binding(var.name(), next_result);
+                        environment
+                            .create_mutable_binding(
+                                var.name().to_owned(),
+                                false,
+                                VariableScope::Block,
+                            )
+                            .map_err(|e| e.to_error(context))?;
+
+                        let environment = &mut context.realm_mut().environment;
+                        environment
+                            .initialize_binding(var.name(), next_result)
+                            .map_err(|e| e.to_error(context))?;
                     }
                     _ => {
                         return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for loop",
+                            "only one variable can be declared in the head of a for-in loop",
                         )
                     }
                 },
@@ -151,50 +181,46 @@ impl Executable for ForLoop {
                         let environment = &mut context.realm_mut().environment;
 
                         if var.init().is_some() {
-                            return context.throw_syntax_error("a declaration in the head of a for loop can't have an initializer");
+                            return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
-                        environment.create_immutable_binding(
-                            var.name().to_owned(),
-                            false,
-                            VariableScope::Block,
-                        );
-                        environment.initialize_binding(var.name(), next_result);
+                        environment
+                            .create_immutable_binding(
+                                var.name().to_owned(),
+                                false,
+                                VariableScope::Block,
+                            )
+                            .map_err(|e| e.to_error(context))?;
+                        let environment = &mut context.realm_mut().environment;
+                        environment
+                            .initialize_binding(var.name(), next_result)
+                            .map_err(|e| e.to_error(context))?;
                     }
                     _ => {
                         return context.throw_syntax_error(
-                            "only one variable can be declared in the head of a for loop",
+                            "only one variable can be declared in the head of a for-in loop",
                         )
                     }
                 },
                 Node::Assign(_) => {
                     return context.throw_syntax_error(
-                        "a declaration in the head of a for loop can't have an initializer",
+                        "a declaration in the head of a for-in loop can't have an initializer",
                     );
                 }
                 _ => {
                     return context
-                        .throw_syntax_error("unknown left hand side in head of for loop")
+                        .throw_syntax_error("unknown left hand side in head of for-in loop")
                 }
             }
 
             result = self.body().run(context)?;
             match context.executor().get_current_state() {
-                InterpreterState::Break(_label) => {
-                    // TODO break to label.
-
-                    // Loops 'consume' breaks.
-                    context
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
+                InterpreterState::Break(label) => {
+                    handle_state_with_labels!(self, label, context, break);
                     break;
                 }
-                InterpreterState::Continue(_label) => {
-                    // TODO continue to label.
-                    context
-                        .executor()
-                        .set_current_state(InterpreterState::Executing);
-                    // after breaking out of the block, continue execution of the loop
+                InterpreterState::Continue(label) => {
+                    handle_state_with_labels!(self, label, context, continue);
                 }
                 InterpreterState::Return => return Ok(result),
                 InterpreterState::Executing => {

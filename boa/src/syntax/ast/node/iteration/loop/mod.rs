@@ -29,6 +29,10 @@ impl Loop {
         self.label.as_ref().map(Box::as_ref)
     }
 
+    pub fn set_label(&mut self, label: Box<str>) {
+        self.label = Some(label);
+    }
+
     /// Creates a `Loop` AST node.
     pub fn new<B>(body: B) -> Self
     where
